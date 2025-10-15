@@ -411,7 +411,12 @@ if __name__ == '__main__':
     
     # Run the Flask app (development)
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() in ('1', 'true', 'yes')
-    port = int(os.environ.get('PORT', 5000))
+    # Read PORT from environment or fallback to 5000 for local development
+    try:
+        port = int(os.environ.get('PORT', os.environ.get('FLASK_RUN_PORT', 5000)))
+    except ValueError:
+        port = 5000
+
     print("Starting web server (development)...")
     print(f"Access the application at: http://localhost:{port}")
     app.run(debug=debug_mode, host='0.0.0.0', port=port)

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Context-Aware IR System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stat-card {
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .interest-item {
+            padding: 8px 12px;
+            margin: 4px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            display: inline-block;
+            border-left: 4px solid #007bff;
+        }
+        .keyword-cloud {
+            text-align: center;
+            padding: 20px;
+        }
+        .keyword-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #e9ecef;
+            border-radius: 20px;
+            font-size: calc(0.8em + 0.2em * var(--weight));
+        }
+        .search-history-item {
+            border-left: 3px solid #28a745;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-search"></i> Context-Aware IR System
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-home"></i> Search
+                </a>
+                <a class="nav-link" href="/compare">
+                    <i class="fas fa-balance-scale"></i> Compare
+                </a>
+                <span class="navbar-text">
+                    User: {{ user_id }}
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1><i class="fas fa-user-circle text-primary"></i> User Profile</h1>
+                <p class="text-muted">Your personalized search profile and interests</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-search fa-2x mb-2"></i>
+                        <h3>{{ profile_stats.total_searches }}</h3>
+                        <p class="mb-0">Total Searches</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-success text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h3>{{ profile_stats.recent_searches }}</h3>
+                        <p class="mb-0">Recent Searches</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-info text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tags fa-2x mb-2"></i>
+                        <h3>{{ profile_stats.top_categories|length }}</h3>
+                        <p class="mb-0">Interest Areas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-thumbs-up fa-2x mb-2"></i>
+                        <h3>{{ profile_stats.feedback_entries }}</h3>
+                        <p class="mb-0">Feedback Entries</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Interest Categories -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-pie"></i> Interest Categories</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if profile_stats.top_categories %}
+                            <canvas id="categoriesChart"></canvas>
+                            <div class="mt-3">
+                                {% for category, score in profile_stats.top_categories %}
+                                <div class="interest-item">
+                                    <strong>{{ category.title() }}</strong>
+                                    <span class="badge bg-primary ms-2">{{ "%.2f"|format(score) }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">No interest categories yet. Start searching to build your profile!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Keywords -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5><i class="fas fa-key"></i> Top Keywords</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if profile_stats.top_keywords %}
+                            <canvas id="keywordsChart"></canvas>
+                            <div class="keyword-cloud mt-3">
+                                {% for keyword, score in profile_stats.top_keywords %}
+                                <span class="keyword-item" style="--weight: {{ (score / profile_stats.top_keywords[0][1])|round(2) }}">
+                                    {{ keyword }}
+                                    <small class="text-muted">({{ "%.1f"|format(score) }})</small>
+                                </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center">No keywords tracked yet. Your search terms will appear here!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interest Profile Details -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-brain"></i> Complete Interest Profile</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Categories</h6>
+                                {% if interest_profile.categories %}
+                                    {% for category, score in interest_profile.categories.items() %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>{{ category.title() }}</span>
+                                        <div>
+                                            <div class="progress" style="width: 100px; height: 8px;">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {{ (score / (interest_profile.categories.values() | max)) * 100 }}%"></div>
+                                            </div>
+                                            <small class="text-muted">{{ "%.2f"|format(score) }}</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">No categories yet</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <h6>Topics</h6>
+                                {% if interest_profile.topics %}
+                                    {% for topic, score in interest_profile.topics.items() %}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>{{ topic.title() }}</span>
+                                        <div>
+                                            <div class="progress" style="width: 100px; height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {{ (score / (interest_profile.topics.values() | max)) * 100 }}%"></div>
+                                            </div>
+                                            <small class="text-muted">{{ "%.2f"|format(score) }}</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">No topics yet</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <h6>Profile Summary</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-search text-primary"></i> Total Searches: {{ interest_profile.total_searches }}</li>
+                                    <li><i class="fas fa-calendar text-success"></i> Recent Activity: {{ interest_profile.recent_searches }}</li>
+                                    <li><i class="fas fa-chart-line text-info"></i> Interest Areas: {{ interest_profile.categories.keys() | length }}</li>
+                                    <li><i class="fas fa-tags text-warning"></i> Keywords Tracked: {{ interest_profile.keywords.keys() | length }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-cogs"></i> Profile Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary" onclick="exportProfile()">
+                                <i class="fas fa-download"></i> Export Profile Data
+                            </button>
+                            <button type="button" class="btn btn-outline-info" onclick="refreshProfile()">
+                                <i class="fas fa-sync"></i> Refresh Profile
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" onclick="clearProfile()">
+                                <i class="fas fa-trash"></i> Clear Search History
+                            </button>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6>Simulate Different User Types:</h6>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="simulateUser('tech')">
+                                    <i class="fas fa-laptop-code"></i> Tech User
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="simulateUser('biology')">
+                                    <i class="fas fa-leaf"></i> Biology User
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="simulateUser('history')">
+                                    <i class="fas fa-history"></i> History User
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Create categories chart
+        {% if profile_stats.top_categories %}
+        const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+        const categoriesChart = new Chart(categoriesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for category, score in profile_stats.top_categories %}'{{ category.title() }}'{% if not loop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    data: [{% for category, score in profile_stats.top_categories %}{{ score }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // Create keywords chart
+        {% if profile_stats.top_keywords %}
+        const keywordsCtx = document.getElementById('keywordsChart').getContext('2d');
+        const keywordsChart = new Chart(keywordsCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for keyword, score in profile_stats.top_keywords[:8] %}'{{ keyword }}'{% if not loop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Interest Score',
+                    data: [{% for keyword, score in profile_stats.top_keywords[:8] %}{{ score }}{% if not loop.last %},{% endif %}{% endfor %}],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // Profile action functions
+        function refreshProfile() {
+            location.reload();
+        }
+
+        function clearProfile() {
+            if (confirm('Are you sure you want to clear your search history? This action cannot be undone.')) {
+                fetch('/reset_profile')
+                .then(response => response.json())
+                .then(data => {
+                    alert('Profile cleared successfully!');
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Profile clear failed:', error);
+                    alert('Failed to clear profile');
+                });
+            }
+        }
+
+        function exportProfile() {
+            const profileData = {
+                user_id: '{{ user_id }}',
+                profile_stats: {{ profile_stats | tojson | safe }},
+                interest_profile: {{ interest_profile | tojson | safe }},
+                exported_at: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(profileData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = 'user_profile_{{ user_id }}.json';
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function simulateUser(userType) {
+            if (confirm(`Simulate ${userType} user profile? This will replace your current profile.`)) {
+                fetch(`/simulate_user/${userType}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(`${userType.charAt(0).toUpperCase() + userType.slice(1)} user profile simulated!`);
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('User simulation failed:', error);
+                    alert('Failed to simulate user profile');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

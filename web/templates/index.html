@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context-Aware Information Retrieval System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .search-container {
+            max-width: 800px;
+            margin: 50px auto;
+        }
+        .result-card {
+            border-left: 4px solid #007bff;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .score-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .category-tag {
+            font-size: 0.8em;
+            margin: 2px;
+        }
+        .personalization-toggle {
+            margin: 20px 0;
+        }
+        .recent-searches {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+        .score-breakdown {
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+        .score-component {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin: 1px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-search"></i> Context-Aware IR System
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/profile">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+                <a class="nav-link" href="/compare">
+                    <i class="fas fa-balance-scale"></i> Compare
+                </a>
+                <span class="navbar-text">
+                    User: {{ user_id }}
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="search-container">
+            <h1 class="text-center mb-4">
+                <i class="fas fa-brain text-primary"></i>
+                Intelligent Document Search
+            </h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form id="searchForm">
+                        <div class="input-group mb-3">
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="searchQuery" 
+                                   placeholder="Enter your search query..."
+                                   autocomplete="off">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                        
+                        <div class="personalization-toggle">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="personalizationToggle" 
+                                       checked>
+                                <label class="form-check-label" for="personalizationToggle">
+                                    <i class="fas fa-user-cog"></i> 
+                                    Enable Personalized Results
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- User Simulation Buttons -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-flask"></i> Demo: Simulate Different User Types</h6>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="simulateUser('tech')">
+                            <i class="fas fa-laptop-code"></i> Tech User
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="simulateUser('biology')">
+                            <i class="fas fa-leaf"></i> Biology User  
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="simulateUser('history')">
+                            <i class="fas fa-history"></i> History User
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="resetProfile()">
+                            <i class="fas fa-redo"></i> Reset Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Searches -->
+            {% if recent_searches %}
+            <div class="recent-searches">
+                <h6><i class="fas fa-clock"></i> Recent Searches</h6>
+                <div>
+                    {% for search in recent_searches %}
+                    <span class="badge bg-secondary me-1 mb-1" 
+                          style="cursor: pointer;"
+                          onclick="document.getElementById('searchQuery').value='{{ search.query }}'; searchDocuments();">
+                        {{ search.query }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults" class="mt-4"></div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Searching documents...</p>
+        </div>
+    </div>
+
+    <!-- Recommendations Section -->
+    <div class="container mt-5">
+        <div id="recommendationsSection" class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-thumbs-up"></i> Personalized Recommendations</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadRecommendations()">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="recommendationsResults">
+                            <p class="text-muted text-center">Click "Refresh" to see personalized recommendations based on your search history.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let currentQuery = '';
+
+        // Form submission
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            searchDocuments();
+        });
+
+        // Search function
+        function searchDocuments() {
+            const query = document.getElementById('searchQuery').value.trim();
+            const personalization = document.getElementById('personalizationToggle').checked;
+            
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            currentQuery = query;
+            
+            // Show loading
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('searchResults').innerHTML = '';
+            
+            // Make search request
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    personalization: personalization
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                displayResults(data);
+            })
+            .catch(error => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                console.error('Search error:', error);
+                alert('Search failed: ' + error.message);
+            });
+        }
+
+        // Display search results
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!data.results || data.results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> 
+                        No results found for "${data.query}"
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <h4>
+                                <i class="fas fa-list"></i> 
+                                Search Results for "${data.query}"
+                                <span class="badge bg-${data.personalized ? 'primary' : 'secondary'} ms-2">
+                                    ${data.personalized ? 'Personalized' : 'Standard'}
+                                </span>
+                                <small class="text-muted">(${data.total_results} results)</small>
+                            </h4>
+                            <hr>
+                        </div>
+                    </div>
+                    <div class="row">
+            `;
+            
+            data.results.forEach((result, index) => {
+                const scoreComponents = result.score_components || {};
+                
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="card result-card position-relative h-100" 
+                             onclick="handleResultClick('${result.doc_id}', '${data.query}')">
+                            <span class="badge bg-primary score-badge">
+                                Score: ${result.score.toFixed(3)}
+                            </span>
+                            <div class="card-body">
+                                <h6 class="card-title">${result.title}</h6>
+                                <p class="card-text">${result.content}</p>
+                                
+                                <div class="mb-2">
+                                    ${result.categories.map(cat => 
+                                        `<span class="badge bg-info category-tag">${cat}</span>`
+                                    ).join('')}
+                                </div>
+                                
+                                <div class="score-breakdown">
+                                    <small class="text-muted">Score Components:</small><br>
+                                    ${Object.entries(scoreComponents).map(([component, score]) =>
+                                        `<span class="score-component">${component}: ${score.toFixed(3)}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        // Handle result click
+        function handleResultClick(docId, query) {
+            console.log('Clicked:', docId, 'for query:', query);
+            
+            // Send click feedback
+            fetch('/click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    doc_id: docId,
+                    query: query
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Click recorded:', data);
+            })
+            .catch(error => {
+                console.error('Click recording failed:', error);
+            });
+        }
+
+        // Simulate different user types
+        function simulateUser(userType) {
+            fetch(`/simulate_user/${userType}`)
+            .then(response => response.json())
+            .then(data => {
+                alert(`Simulated ${userType} user profile created! Try searching for "python" to see the difference.`);
+                console.log('User simulation:', data);
+            })
+            .catch(error => {
+                console.error('User simulation failed:', error);
+                alert('Failed to simulate user');
+            });
+        }
+
+        // Reset user profile
+        function resetProfile() {
+            if (confirm('Reset your user profile and search history?')) {
+                fetch('/reset_profile')
+                .then(response => response.json())
+                .then(data => {
+                    alert('Profile reset successfully!');
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Profile reset failed:', error);
+                });
+            }
+        }
+
+        // Load recommendations
+        function loadRecommendations() {
+            fetch('/recommendations')
+            .then(response => response.json())
+            .then(data => {
+                displayRecommendations(data.recommendations);
+            })
+            .catch(error => {
+                console.error('Recommendations loading failed:', error);
+                document.getElementById('recommendationsResults').innerHTML = 
+                    '<p class="text-danger">Failed to load recommendations</p>';
+            });
+        }
+
+        // Display recommendations
+        function displayRecommendations(recommendations) {
+            const resultsDiv = document.getElementById('recommendationsResults');
+            
+            if (!recommendations || recommendations.length === 0) {
+                resultsDiv.innerHTML = '<p class="text-muted text-center">No recommendations available. Try searching for some documents first!</p>';
+                return;
+            }
+            
+            let html = '<div class="row">';
+            
+            recommendations.forEach(rec => {
+                html += `
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <div class="card h-100" style="cursor: pointer;" onclick="handleRecommendationClick('${rec.doc_id}')">
+                            <div class="card-body">
+                                <h6 class="card-title">${rec.title}</h6>
+                                <p class="card-text small">${rec.content}</p>
+                                <div class="mb-2">
+                                    ${rec.categories.map(cat => 
+                                        `<span class="badge bg-success category-tag">${cat}</span>`
+                                    ).join('')}
+                                </div>
+                                <small class="text-muted">Relevance: ${rec.score.toFixed(3)}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        // Handle recommendation click
+        function handleRecommendationClick(docId) {
+            console.log('Recommendation clicked:', docId);
+            // Could implement recommendation feedback here
+        }
+
+        // Auto-load recommendations on page load
+        window.onload = function() {
+            loadRecommendations();
+        };
+    </script>
+</body>
+</html>

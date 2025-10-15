@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Comparison - Context-Aware IR System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .comparison-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .result-card {
+            border-left: 4px solid #007bff;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .baseline-card {
+            border-left-color: #6c757d;
+        }
+        .personalized-card {
+            border-left-color: #28a745;
+        }
+        .score-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8em;
+        }
+        .rank-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .category-tag {
+            font-size: 0.75em;
+            margin: 2px;
+        }
+        .score-breakdown {
+            font-size: 0.8em;
+            margin-top: 8px;
+        }
+        .score-component {
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin: 1px;
+            display: inline-block;
+        }
+        .comparison-header {
+            background: linear-gradient(135deg, #007bff, #28a745);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        .vs-divider {
+            text-align: center;
+            font-size: 2em;
+            color: #007bff;
+            margin: 20px 0;
+        }
+        .empty-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-search"></i> Context-Aware IR System
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-home"></i> Search
+                </a>
+                <a class="nav-link" href="/profile">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="comparison-header">
+        <div class="container text-center">
+            <h1><i class="fas fa-balance-scale"></i> Search Results Comparison</h1>
+            <p class="lead mb-0">Compare baseline search results with personalized results</p>
+        </div>
+    </div>
+
+    <div class="container comparison-container">
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form id="comparisonForm">
+                    <div class="row align-items-end">
+                        <div class="col-md-8">
+                            <label for="comparisonQuery" class="form-label">Search Query</label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="comparisonQuery" 
+                                   placeholder="Enter query to compare results (e.g., 'python', 'machine learning')..."
+                                   autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary btn-lg w-100" type="submit">
+                                <i class="fas fa-balance-scale"></i> Compare Results
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        Try queries like "python", "machine learning", or "ecosystem" to see how personalization affects rankings.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Results -->
+        <div id="comparisonResults" class="d-none">
+            <div class="row">
+                <!-- Baseline Results -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-search"></i> 
+                                Baseline Results
+                                <small class="ms-2">(No Personalization)</small>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="baselineResults">
+                                <!-- Results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personalized Results -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-cog"></i> 
+                                Personalized Results
+                                <small class="ms-2">(With Your Profile)</small>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="personalizedResults">
+                                <!-- Results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-line"></i> Comparison Analysis</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="comparisonAnalysis">
+                                <!-- Analysis will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example Queries -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6><i class="fas fa-lightbulb"></i> Example Queries to Try</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Technology Focused</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm" onclick="setQuery('python')">python</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="setQuery('machine learning')">machine learning</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="setQuery('database')">database</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Biology Focused</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-success btn-sm" onclick="setQuery('ecosystem')">ecosystem</button>
+                            <button class="btn btn-outline-success btn-sm" onclick="setQuery('genetic')">genetic</button>
+                            <button class="btn btn-outline-success btn-sm" onclick="setQuery('conservation')">conservation</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>History Focused</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-info btn-sm" onclick="setQuery('ancient')">ancient</button>
+                            <button class="btn btn-outline-info btn-sm" onclick="setQuery('war')">war</button>
+                            <button class="btn btn-outline-info btn-sm" onclick="setQuery('renaissance')">renaissance</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h5>Comparing Results...</h5>
+            <p class="text-muted">Generating baseline and personalized results</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form submission
+        document.getElementById('comparisonForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            compareResults();
+        });
+
+        function setQuery(query) {
+            document.getElementById('comparisonQuery').value = query;
+            compareResults();
+        }
+
+        function compareResults() {
+            const query = document.getElementById('comparisonQuery').value.trim();
+            
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loadingOverlay').classList.remove('d-none');
+            document.getElementById('comparisonResults').classList.add('d-none');
+            
+            // Make comparison request
+            fetch('/compare_search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loadingOverlay').classList.add('d-none');
+                displayComparison(data);
+            })
+            .catch(error => {
+                document.getElementById('loadingOverlay').classList.add('d-none');
+                console.error('Comparison error:', error);
+                alert('Comparison failed: ' + error.message);
+            });
+        }
+
+        function displayComparison(data) {
+            const baselineDiv = document.getElementById('baselineResults');
+            const personalizedDiv = document.getElementById('personalizedResults');
+            const analysisDiv = document.getElementById('comparisonAnalysis');
+            
+            // Display baseline results
+            baselineDiv.innerHTML = formatResults(data.baseline_results, 'baseline');
+            
+            // Display personalized results
+            personalizedDiv.innerHTML = formatResults(data.personalized_results, 'personalized');
+            
+            // Generate analysis
+            analysisDiv.innerHTML = generateAnalysis(data);
+            
+            // Show results
+            document.getElementById('comparisonResults').classList.remove('d-none');
+            
+            // Scroll to results
+            document.getElementById('comparisonResults').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function formatResults(results, type) {
+            if (!results || results.length === 0) {
+                return `
+                    <div class="empty-results">
+                        <i class="fas fa-search fa-3x mb-3"></i>
+                        <h5>No Results Found</h5>
+                        <p>No matching documents for this query.</p>
+                    </div>
+                `;
+            }
+            
+            let html = '';
+            const colorClass = type === 'baseline' ? 'baseline-card' : 'personalized-card';
+            const badgeColor = type === 'baseline' ? 'secondary' : 'success';
+            
+            results.forEach((result, index) => {
+                const scoreComponents = result.score_components || {};
+                
+                html += `
+                    <div class="card result-card ${colorClass} position-relative">
+                        <span class="badge bg-primary rank-badge">${index + 1}</span>
+                        <span class="badge bg-${badgeColor} score-badge">
+                            ${result.score.toFixed(3)}
+                        </span>
+                        <div class="card-body" style="padding-left: 50px; padding-right: 80px;">
+                            <h6 class="card-title">${result.title}</h6>
+                            <p class="card-text">${result.content}</p>
+                            
+                            <div class="mb-2">
+                                ${result.categories.map(cat => 
+                                    `<span class="badge bg-info category-tag">${cat}</span>`
+                                ).join('')}
+                            </div>
+                            
+                            <div class="score-breakdown">
+                                <small class="text-muted">Score Components:</small><br>
+                                ${Object.entries(scoreComponents).map(([component, score]) =>
+                                    `<span class="score-component">${component}: ${score.toFixed(3)}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+
+        function generateAnalysis(data) {
+            const baselineResults = data.baseline_results || [];
+            const personalizedResults = data.personalized_results || [];
+            
+            if (baselineResults.length === 0 && personalizedResults.length === 0) {
+                return '<p class="text-muted">No results to analyze.</p>';
+            }
+            
+            // Calculate differences
+            const baselineIds = baselineResults.map(r => r.doc_id);
+            const personalizedIds = personalizedResults.map(r => r.doc_id);
+            
+            const rerankedDocs = [];
+            const newDocs = personalizedIds.filter(id => !baselineIds.includes(id));
+            const removedDocs = baselineIds.filter(id => !personalizedIds.includes(id));
+            
+            // Find position changes
+            personalizedResults.forEach((result, newRank) => {
+                const oldRank = baselineIds.indexOf(result.doc_id);
+                if (oldRank !== -1 && oldRank !== newRank) {
+                    rerankedDocs.push({
+                        title: result.title,
+                        oldRank: oldRank + 1,
+                        newRank: newRank + 1,
+                        change: oldRank - newRank
+                    });
+                }
+            });
+            
+            // Calculate category distributions
+            const baselineCategories = {};
+            const personalizedCategories = {};
+            
+            baselineResults.forEach(result => {
+                result.categories.forEach(cat => {
+                    baselineCategories[cat] = (baselineCategories[cat] || 0) + 1;
+                });
+            });
+            
+            personalizedResults.forEach(result => {
+                result.categories.forEach(cat => {
+                    personalizedCategories[cat] = (personalizedCategories[cat] || 0) + 1;
+                });
+            });
+            
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-chart-bar"></i> Key Changes</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-arrow-up text-success"></i> Documents re-ranked: ${rerankedDocs.length}</li>
+                            <li><i class="fas fa-plus text-primary"></i> New in top results: ${newDocs.length}</li>
+                            <li><i class="fas fa-minus text-danger"></i> Removed from top: ${removedDocs.length}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-tags"></i> Category Focus</h6>
+                        <div class="mb-2">
+                            <small class="text-muted">Baseline:</small><br>
+                            ${Object.entries(baselineCategories).map(([cat, count]) =>
+                                `<span class="badge bg-secondary me-1">${cat} (${count})</span>`
+                            ).join('')}
+                        </div>
+                        <div>
+                            <small class="text-muted">Personalized:</small><br>
+                            ${Object.entries(personalizedCategories).map(([cat, count]) =>
+                                `<span class="badge bg-success me-1">${cat} (${count})</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            if (rerankedDocs.length > 0) {
+                html += `
+                    <div class="mt-3">
+                        <h6><i class="fas fa-sort"></i> Significant Ranking Changes</h6>
+                        <div class="row">
+                `;
+                
+                rerankedDocs.slice(0, 6).forEach(doc => {
+                    const changeIcon = doc.change > 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-danger';
+                    const changeText = doc.change > 0 ? `+${doc.change}` : doc.change;
+                    
+                    html += `
+                        <div class="col-md-4 mb-2">
+                            <div class="card border-0" style="background-color: #f8f9fa;">
+                                <div class="card-body p-2">
+                                    <small class="fw-bold">${doc.title.substring(0, 30)}...</small><br>
+                                    <small class="text-muted">
+                                        ${doc.oldRank} → ${doc.newRank} 
+                                        <i class="fas ${changeIcon}"></i> ${changeText}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div></div>';
+            }
+            
+            return html;
+        }
+    </script>
+</body>
+</html>

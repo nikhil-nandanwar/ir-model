@@ -1,0 +1,146 @@
+{
+  "user_id": "tech_user",
+  "search_history": [
+    {
+      "query": "python programming tutorial",
+      "timestamp": "2025-10-14T13:50:34.186164",
+      "clicked_docs": [],
+      "categories": [
+        "technology",
+        "programming"
+      ],
+      "processed_query": "python programming tutorial"
+    },
+    {
+      "query": "machine learning algorithms",
+      "timestamp": "2025-10-14T13:50:34.186271",
+      "clicked_docs": [],
+      "categories": [
+        "technology",
+        "artificial_intelligence"
+      ],
+      "processed_query": "machine learning algorithms"
+    },
+    {
+      "query": "software development best practices",
+      "timestamp": "2025-10-14T13:50:34.186344",
+      "clicked_docs": [],
+      "categories": [
+        "technology",
+        "programming"
+      ],
+      "processed_query": "software development best practices"
+    },
+    {
+      "query": "database optimization techniques",
+      "timestamp": "2025-10-14T13:50:34.186404",
+      "clicked_docs": [],
+      "categories": [
+        "technology",
+        "databases"
+      ],
+      "processed_query": "database optimization techniques"
+    },
+    {
+      "query": "web development frameworks",
+      "timestamp": "2025-10-14T13:50:34.186477",
+      "clicked_docs": [],
+      "categories": [
+        "technology",
+        "web"
+      ],
+      "processed_query": "web development frameworks"
+    },
+    {
+      "query": "python",
+      "timestamp": "2025-10-14T13:50:34.189752",
+      "clicked_docs": [],
+      "categories": [],
+      "processed_query": "python"
+    },
+    {
+      "query": "research",
+      "timestamp": "2025-10-14T13:50:34.194579",
+      "clicked_docs": [],
+      "categories": [
+        "science"
+      ],
+      "processed_query": "research"
+    },
+    {
+      "query": "programming",
+      "timestamp": "2025-10-14T13:50:34.198856",
+      "clicked_docs": [],
+      "categories": [
+        "technology"
+      ],
+      "processed_query": "programming"
+    },
+    {
+      "query": "programming",
+      "timestamp": "2025-10-14T13:50:34.200376",
+      "clicked_docs": [],
+      "categories": [
+        "technology"
+      ],
+      "processed_query": "programming"
+    },
+    {
+      "query": "database systems",
+      "timestamp": "2025-10-07T13:50:34.200488",
+      "clicked_docs": [],
+      "categories": [
+        "technology",
+        "databases"
+      ],
+      "processed_query": "database systems"
+    },
+    {
+      "query": "neural networks",
+      "timestamp": "2025-10-14T11:50:34.200494",
+      "clicked_docs": [],
+      "categories": [
+        "technology",
+        "artificial_intelligence"
+      ],
+      "processed_query": "neural networks"
+    }
+  ],
+  "interest_categories": {
+    "technology": 13.2617949782391,
+    "programming": 3.691165190781261,
+    "artificial_intelligence": 1.84548938885584,
+    "databases": 1.8829602988019998,
+    "web": 1.9019800997999998,
+    "science": 1.9405979999999998
+  },
+  "keyword_preferences": {
+    "python": 1.8741132574836405,
+    "programming": 2.883617247483641,
+    "tutorial": 0.9135172474836407,
+    "machine": 0.92274469442792,
+    "learning": 0.92274469442792,
+    "algorithms": 0.92274469442792,
+    "software": 0.9320653479069899,
+    "development": 1.8830553978069897,
+    "best": 0.9320653479069899,
+    "practices": 0.9320653479069899,
+    "database": 0.9414801494009999,
+    "optimization": 0.9414801494009999,
+    "techniques": 0.9414801494009999,
+    "web": 0.9509900498999999,
+    "frameworks": 0.9509900498999999,
+    "research": 0.9702989999999999
+  },
+  "topic_preferences": {
+    "technology": 6.640218142598622,
+    "science": 0.9702989999999999
+  },
+  "click_through_data": {},
+  "relevance_feedback": {
+    "programming_python_programming": 0.1
+  },
+  "max_history_size": 1000,
+  "history_decay_rate": 0.05,
+  "recency_window_hours": 24
+}

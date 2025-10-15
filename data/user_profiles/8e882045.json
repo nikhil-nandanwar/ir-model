@@ -1,0 +1,106 @@
+{
+  "user_id": "8e882045",
+  "search_history": [
+    {
+      "query": "ancient civilizations development",
+      "timestamp": "2025-10-15T12:11:49.569505",
+      "clicked_docs": [],
+      "categories": [
+        "history",
+        "culture"
+      ],
+      "processed_query": "ancient civilizations development"
+    },
+    {
+      "query": "world war timeline",
+      "timestamp": "2025-10-15T12:11:49.569722",
+      "clicked_docs": [],
+      "categories": [
+        "history",
+        "culture"
+      ],
+      "processed_query": "world war timeline"
+    },
+    {
+      "query": "renaissance art movements",
+      "timestamp": "2025-10-15T12:11:49.569858",
+      "clicked_docs": [],
+      "categories": [
+        "history",
+        "culture"
+      ],
+      "processed_query": "renaissance art movements"
+    },
+    {
+      "query": "historical archaeological discoveries",
+      "timestamp": "2025-10-15T12:11:49.569979",
+      "clicked_docs": [],
+      "categories": [
+        "history",
+        "culture"
+      ],
+      "processed_query": "historical archaeological discoveries"
+    },
+    {
+      "query": "cultural heritage preservation",
+      "timestamp": "2025-10-15T12:11:49.570098",
+      "clicked_docs": [],
+      "categories": [
+        "history",
+        "culture"
+      ],
+      "processed_query": "cultural heritage preservation"
+    },
+    {
+      "query": "medieval society structure",
+      "timestamp": "2025-10-15T12:11:49.570209",
+      "clicked_docs": [],
+      "categories": [
+        "history",
+        "culture"
+      ],
+      "processed_query": "medieval society structure"
+    },
+    {
+      "query": "pyhton",
+      "timestamp": "2025-10-15T12:11:53.023294",
+      "clicked_docs": [],
+      "categories": [],
+      "processed_query": "pyhton"
+    }
+  ],
+  "interest_categories": {
+    "history": 11.47106111441598,
+    "culture": 11.47106111441598
+  },
+  "keyword_preferences": {
+    "ancient": 0.9320653479069899,
+    "civilizations": 0.9320653479069899,
+    "development": 0.9320653479069899,
+    "world": 0.9414801494009999,
+    "war": 0.9414801494009999,
+    "timeline": 0.9414801494009999,
+    "renaissance": 0.9509900498999999,
+    "art": 0.9509900498999999,
+    "movements": 0.9509900498999999,
+    "historical": 0.96059601,
+    "archaeological": 0.96059601,
+    "discoveries": 0.96059601,
+    "cultural": 0.9702989999999999,
+    "heritage": 0.9702989999999999,
+    "preservation": 0.9702989999999999,
+    "medieval": 0.9801,
+    "society": 0.9801,
+    "structure": 0.9801,
+    "pyhton": 0.99
+  },
+  "topic_preferences": {
+    "technology": 0.9320653479069899,
+    "history": 5.7260206567089895
+  },
+  "click_through_data": {},
+  "relevance_feedback": {},
+  "max_history_size": 1000,
+  "history_decay_rate": 0.05,
+  "recency_window_hours": 24
+}
